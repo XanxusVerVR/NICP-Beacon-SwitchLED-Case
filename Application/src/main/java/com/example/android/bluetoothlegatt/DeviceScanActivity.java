@@ -38,10 +38,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
+import com.android.volley.RetryPolicy;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.HttpHeaderParser;
@@ -75,8 +77,9 @@ public class DeviceScanActivity extends ListActivity {
     private static final int REQUEST_ENABLE_BT = 1;
     private static Context context;
     // Stops scanning after 10 seconds.
-    private static final long SCAN_PERIOD = 5 * 1000;
-    RequestQueue requestQueue;
+    private static final long SCAN_PERIOD = 3 * 1000;
+    private RequestQueue requestQueue;
+    private boolean isSendHttpCommand = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -239,7 +242,16 @@ public class DeviceScanActivity extends ListActivity {
                 @Override
                 public void run() {
                     mScanning = false;
+                    // 掃瞄完畢後，從掃描到的藍芽裝置ArrayList找看有沒有我們的藍芽裝置，有的話就傳指令開燈，沒有就關燈？
                     mBluetoothAdapter.stopLeScan(mLeScanCallback);
+                    boolean isHaveWeBLEDevice = false;
+                    for (int i = 0; i < mLeDeviceListAdapter.getCount(); i++) {
+                        if (mLeDeviceListAdapter.getDevice(i).getAddress().equals(piBleMACAddress)) {
+                            sendHttpSwitchLEDCommend("on");
+                            isHaveWeBLEDevice = true;
+                        }
+                    }
+                    System.out.println(isHaveWeBLEDevice);
                     invalidateOptionsMenu();
                 }
             }, SCAN_PERIOD);
@@ -270,6 +282,10 @@ public class DeviceScanActivity extends ListActivity {
                 mLeDevices.add(device);
             }
         }
+
+//        public ArrayList<BluetoothDevice> getBluetoothDeviceList() {
+//            return mLeDevices;
+//        }
 
         public BluetoothDevice getDevice(int position) {
             return mLeDevices.get(position);
@@ -310,7 +326,6 @@ public class DeviceScanActivity extends ListActivity {
             }
 
             BluetoothDevice device = mLeDevices.get(i);
-
             final String deviceName = device.getName();
             if (deviceName != null && deviceName.length() > 0)
                 viewHolder.deviceName.setText(deviceName);
@@ -338,51 +353,19 @@ public class DeviceScanActivity extends ListActivity {
 
                         mBluetoothAdapter.stopLeScan(mLeScanCallback);
 
-                        String url = "https://xanxus-node-red.cf/android/b";
-                        //
-                        requestQueue = Volley.newRequestQueue(context);
-                        try {
-                            Gson gson = new GsonBuilder().disableHtmlEscaping().setFieldNamingPolicy(FieldNamingPolicy.IDENTITY).create();//創造Gson物件
-                            final String myJsonString = gson.toJson(new PushService("", "on", new Result(), new Config()));
-
-                            StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
-                                @Override
-                                public void onResponse(String response) {
-                                    Log.i("LOG_RESPONSE", response.toString());
-                                }
-                            }, new Response.ErrorListener() {
-                                @Override
-                                public void onErrorResponse(VolleyError error) {
-                                    Log.e("LOG_RESPONSE", error.toString());
-                                }
-                            }) {
-                                @Override
-                                public String getBodyContentType() {
-                                    return "application/json; charset=utf-8";
-                                }
-
-                                // 雖然有點奇怪，但getBody()確實是送出請求的資料
-                                @Override
-                                public byte[] getBody() throws AuthFailureError {
-                                    try {
-                                        return myJsonString == null ? null : myJsonString.getBytes("utf-8");
-                                    } catch (UnsupportedEncodingException uee) {
-                                        VolleyLog.wtf("Unsupported Encoding while trying to get the bytes of %s using %s", myJsonString, "utf-8");
-                                        return null;
-                                    }
-                                }
-                            };
-                            requestQueue.add(stringRequest);
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                        if (!isSendHttpCommand) {
+//                            sendHttpSwitchLEDCommend("on");
+                            isSendHttpCommand = true;
+                            System.out.println(isSendHttpCommand);
                         }
-                    }
-                    else{
-
+                    } else {
+//                        sendHttpSwitchLEDCommend("off");
                     }
                 }
             });
         }
+
+
     };
 
     static class ViewHolder {
@@ -390,7 +373,50 @@ public class DeviceScanActivity extends ListActivity {
         TextView deviceAddress;
     }
 
-    public static Context getAppContext() {
-        return DeviceScanActivity.context;
+    public void sendHttpSwitchLEDCommend(String command) {
+        String url = "https://xanxus-node-red.cf/android/b";
+        requestQueue = Volley.newRequestQueue(context);
+
+        try {
+            Gson gson = new GsonBuilder().disableHtmlEscaping().setFieldNamingPolicy(FieldNamingPolicy.IDENTITY).create();//創造Gson物件
+            final String myJsonString = gson.toJson(new PushService("", command, new Result(), new Config()));
+
+            StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+                @Override
+                public void onResponse(String response) {
+                    Log.i("LOG_RESPONSE", response.toString());
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.e("LOG_RESPONSE", error.toString());
+                }
+            }) {
+                @Override
+                public String getBodyContentType() {
+                    return "application/json; charset=utf-8";
+                }
+
+                // 雖然有點奇怪，但getBody()確實是送出請求的資料
+                @Override
+                public byte[] getBody() throws AuthFailureError {
+                    try {
+                        return myJsonString == null ? null : myJsonString.getBytes("utf-8");
+                    } catch (UnsupportedEncodingException uee) {
+                        VolleyLog.wtf("Unsupported Encoding while trying to get the bytes of %s using %s", myJsonString, "utf-8");
+                        return null;
+                    }
+                }
+
+            };
+            stringRequest.setRetryPolicy(new DefaultRetryPolicy(
+                    0,
+                    DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+            requestQueue.add(stringRequest);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
