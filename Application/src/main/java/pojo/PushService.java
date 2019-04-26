@@ -20,6 +20,17 @@ public class PushService {
     @Expose
     private Config config;
 
+    public PushService() {
+    }
+
+    public PushService(String userID, String message, Result result, Config config) {
+        this.userID = userID;
+        this.message = message;
+        this.result = result;
+        this.config = config;
+    }
+
+
     public String getUserID() {
         return userID;
     }

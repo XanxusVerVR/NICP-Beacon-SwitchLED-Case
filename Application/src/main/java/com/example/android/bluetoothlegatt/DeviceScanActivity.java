@@ -48,12 +48,19 @@ import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+
+import pojo.Config;
+import pojo.PushService;
+import pojo.Result;
 
 /**
  * Activity for scanning and displaying available Bluetooth LE devices.
@@ -125,35 +132,18 @@ public class DeviceScanActivity extends ListActivity {
                 scanLeDevice(false);
                 break;
             case R.id.page2:
-                String url = "https://xanxus-node-red.cf/anandr";
-//                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
-//                        (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
-//
-//                            @Override
-//                            public void onResponse(JSONObject response) {
-//                                System.out.println("印出回應："+response.toString());
-//                            }
-//                        }, new Response.ErrorListener() {
-//
-//                            @Override
-//                            public void onErrorResponse(VolleyError error) {
-//                                // TODO: Handle error
-//
-//                            }
-//                        });
-//                mQueue.add(jsonObjectRequest);
+                // 請求程式碼參考：https://bit.ly/2XKTaAQ
+                String url = "https://xanxus-node-red.cf/android/b";
                 try {
                     RequestQueue requestQueue = Volley.newRequestQueue(this);
-                    JSONObject jsonBody = new JSONObject();
-                    jsonBody.put("username", "Shozib@gmail.com");
-                    jsonBody.put("password", "中文");
-                    final String mRequestBody = jsonBody.toString();
+
+                    Gson gson = new GsonBuilder().disableHtmlEscaping().setFieldNamingPolicy(FieldNamingPolicy.IDENTITY).create();//創造Gson物件
+                    final String myJsonString = gson.toJson(new PushService("123", "567", new Result(), new Config()));
 
                     StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
                         @Override
                         public void onResponse(String response) {
                             Log.i("LOG_RESPONSE", response.toString());
-                            System.out.println("回應的body：" + response);
                         }
                     }, new Response.ErrorListener() {
                         @Override
@@ -170,32 +160,17 @@ public class DeviceScanActivity extends ListActivity {
                         @Override
                         public byte[] getBody() throws AuthFailureError {
                             try {
-                                return mRequestBody == null ? null : mRequestBody.getBytes("utf-8");
+                                return myJsonString == null ? null : myJsonString.getBytes("utf-8");
                             } catch (UnsupportedEncodingException uee) {
-                                VolleyLog.wtf("Unsupported Encoding while trying to get the bytes of %s using %s", mRequestBody, "utf-8");
+                                VolleyLog.wtf("Unsupported Encoding while trying to get the bytes of %s using %s", myJsonString, "utf-8");
                                 return null;
                             }
                         }
-                        
-//                        @Override
-//                        protected Response<String> parseNetworkResponse(NetworkResponse response) {
-//                            String responseString = "";
-//                            if (response != null) {
-//                                responseString = String.valueOf(response.statusCode);
-//                            }
-//                            return Response.success(responseString, HttpHeaderParser.parseCacheHeaders(response));
-//                        }
                     };
-
                     requestQueue.add(stringRequest);
-                } catch (JSONException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
-
-
-//                Intent intent = new Intent(DeviceScanActivity.this, Page2.class);
-//                startActivity(intent);
-//                System.out.println("跳到頁面2");
                 break;
         }
         return true;
