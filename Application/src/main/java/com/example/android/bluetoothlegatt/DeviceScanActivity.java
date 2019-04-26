@@ -26,6 +26,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -36,15 +37,22 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 /**
@@ -118,22 +126,73 @@ public class DeviceScanActivity extends ListActivity {
                 break;
             case R.id.page2:
                 String url = "https://xanxus-node-red.cf/anandr";
-                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
-                        (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+//                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
+//                        (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+//
+//                            @Override
+//                            public void onResponse(JSONObject response) {
+//                                System.out.println("印出回應："+response.toString());
+//                            }
+//                        }, new Response.ErrorListener() {
+//
+//                            @Override
+//                            public void onErrorResponse(VolleyError error) {
+//                                // TODO: Handle error
+//
+//                            }
+//                        });
+//                mQueue.add(jsonObjectRequest);
+                try {
+                    RequestQueue requestQueue = Volley.newRequestQueue(this);
+                    JSONObject jsonBody = new JSONObject();
+                    jsonBody.put("username", "Shozib@gmail.com");
+                    jsonBody.put("password", "中文");
+                    final String mRequestBody = jsonBody.toString();
 
-                            @Override
-                            public void onResponse(JSONObject response) {
-                                System.out.println("印出回應："+response.toString());
+                    StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            Log.i("LOG_RESPONSE", response.toString());
+                            System.out.println("回應的body：" + response);
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.e("LOG_RESPONSE", error.toString());
+                        }
+                    }) {
+                        @Override
+                        public String getBodyContentType() {
+                            return "application/json; charset=utf-8";
+                        }
+
+                        // 雖然有點奇怪，但getBody()確實是送出請求的資料
+                        @Override
+                        public byte[] getBody() throws AuthFailureError {
+                            try {
+                                return mRequestBody == null ? null : mRequestBody.getBytes("utf-8");
+                            } catch (UnsupportedEncodingException uee) {
+                                VolleyLog.wtf("Unsupported Encoding while trying to get the bytes of %s using %s", mRequestBody, "utf-8");
+                                return null;
                             }
-                        }, new Response.ErrorListener() {
+                        }
+                        
+//                        @Override
+//                        protected Response<String> parseNetworkResponse(NetworkResponse response) {
+//                            String responseString = "";
+//                            if (response != null) {
+//                                responseString = String.valueOf(response.statusCode);
+//                            }
+//                            return Response.success(responseString, HttpHeaderParser.parseCacheHeaders(response));
+//                        }
+                    };
 
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
-                                // TODO: Handle error
+                    requestQueue.add(stringRequest);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
 
-                            }
-                        });
-                mQueue.add(jsonObjectRequest);
+
 //                Intent intent = new Intent(DeviceScanActivity.this, Page2.class);
 //                startActivity(intent);
 //                System.out.println("跳到頁面2");
