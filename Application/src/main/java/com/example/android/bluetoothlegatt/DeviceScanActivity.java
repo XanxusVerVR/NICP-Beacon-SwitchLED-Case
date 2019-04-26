@@ -78,8 +78,7 @@ public class DeviceScanActivity extends ListActivity {
     private static Context context;
     // Stops scanning after 10 seconds.
     private static final long SCAN_PERIOD = 3 * 1000;
-    private RequestQueue requestQueue;
-    private boolean isSendHttpCommand = false;
+    private static RequestQueue requestQueue;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -247,7 +246,7 @@ public class DeviceScanActivity extends ListActivity {
                     boolean isHaveWeBLEDevice = false;
                     for (int i = 0; i < mLeDeviceListAdapter.getCount(); i++) {
                         if (mLeDeviceListAdapter.getDevice(i).getAddress().equals(piBleMACAddress)) {
-                            sendHttpSwitchLEDCommend("on");
+                            sendHttpSwitchLEDCommend("on", Volley.newRequestQueue(context));
                         }
                     }
                     invalidateOptionsMenu();
@@ -351,9 +350,9 @@ public class DeviceScanActivity extends ListActivity {
         TextView deviceAddress;
     }
 
-    public void sendHttpSwitchLEDCommend(String command) {
+    public static void sendHttpSwitchLEDCommend(String command, RequestQueue requestQueue) {
         String url = "https://xanxus-node-red.cf/android/b";
-        requestQueue = Volley.newRequestQueue(context);
+//        requestQueue = Volley.newRequestQueue(context);
 
         try {
             Gson gson = new GsonBuilder().disableHtmlEscaping().setFieldNamingPolicy(FieldNamingPolicy.IDENTITY).create();//創造Gson物件

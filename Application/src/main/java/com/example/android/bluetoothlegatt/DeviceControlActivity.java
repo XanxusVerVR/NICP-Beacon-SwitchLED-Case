@@ -35,9 +35,13 @@ import android.widget.ExpandableListView;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
 
+import com.android.volley.toolbox.Volley;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import static com.example.android.bluetoothlegatt.DeviceScanActivity.sendHttpSwitchLEDCommend;
 
 /**
  * For a given BLE device, this Activity provides the user interface to connect, display data,
@@ -61,6 +65,7 @@ public class DeviceControlActivity extends Activity {
             new ArrayList<ArrayList<BluetoothGattCharacteristic>>();
     private boolean mConnected = false;
     private BluetoothGattCharacteristic mNotifyCharacteristic;
+    private static Context context;
 
     private final String LIST_NAME = "NAME";
     private final String LIST_UUID = "UUID";
@@ -77,12 +82,37 @@ public class DeviceControlActivity extends Activity {
             }
             // Automatically connects to the device upon successful start-up initialization.
             mBluetoothLeService.connect(mDeviceAddress);
+            System.out.println("------------------");
+            System.out.println("------------------");
+            System.out.println("------------------");
+            System.out.println("------------------");
+            System.out.println("------------------");
+            System.out.println("連線了");
+            System.out.println("------------------");
+            System.out.println("------------------");
+            System.out.println("------------------");
+            System.out.println("------------------");
+            System.out.println("------------------");
+            sendHttpSwitchLEDCommend("off", Volley.newRequestQueue(context));
         }
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
+            System.out.println("------------------");
+            System.out.println("------------------");
+            System.out.println("------------------");
+            System.out.println("------------------");
+            System.out.println("------------------");
+            System.out.println("斷開連線");
+            System.out.println("------------------");
+            System.out.println("------------------");
+            System.out.println("------------------");
+            System.out.println("------------------");
+            System.out.println("------------------");
+//            sendHttpSwitchLEDCommend("off", Volley.newRequestQueue(context));
             mBluetoothLeService = null;
         }
+
     };
 
     // Handles various events fired by the Service.
@@ -145,7 +175,7 @@ public class DeviceControlActivity extends Activity {
                     }
                     return false;
                 }
-    };
+            };
 
     private void clearUI() {
         mGattServicesList.setAdapter((SimpleExpandableListAdapter) null);
@@ -156,6 +186,8 @@ public class DeviceControlActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.gatt_services_characteristics);
+
+        DeviceControlActivity.context = getApplicationContext();
 
         final Intent intent = getIntent();
         mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
@@ -212,7 +244,7 @@ public class DeviceControlActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId()) {
+        switch (item.getItemId()) {
             case R.id.menu_connect:
                 mBluetoothLeService.connect(mDeviceAddress);
                 return true;
@@ -288,12 +320,12 @@ public class DeviceControlActivity extends Activity {
                 this,
                 gattServiceData,
                 android.R.layout.simple_expandable_list_item_2,
-                new String[] {LIST_NAME, LIST_UUID},
-                new int[] { android.R.id.text1, android.R.id.text2 },
+                new String[]{LIST_NAME, LIST_UUID},
+                new int[]{android.R.id.text1, android.R.id.text2},
                 gattCharacteristicData,
                 android.R.layout.simple_expandable_list_item_2,
-                new String[] {LIST_NAME, LIST_UUID},
-                new int[] { android.R.id.text1, android.R.id.text2 }
+                new String[]{LIST_NAME, LIST_UUID},
+                new int[]{android.R.id.text1, android.R.id.text2}
         );
         mGattServicesList.setAdapter(gattServiceAdapter);
     }
