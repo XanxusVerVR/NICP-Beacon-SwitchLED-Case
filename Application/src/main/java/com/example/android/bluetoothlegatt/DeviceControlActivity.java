@@ -93,7 +93,7 @@ public class DeviceControlActivity extends Activity {
             System.out.println("------------------");
             System.out.println("------------------");
             System.out.println("------------------");
-            sendHttpSwitchLEDCommend("off", Volley.newRequestQueue(context));
+//            sendHttpSwitchLEDCommend("off", Volley.newRequestQueue(context));
         }
 
         @Override
@@ -109,7 +109,6 @@ public class DeviceControlActivity extends Activity {
             System.out.println("------------------");
             System.out.println("------------------");
             System.out.println("------------------");
-//            sendHttpSwitchLEDCommend("off", Volley.newRequestQueue(context));
             mBluetoothLeService = null;
         }
 
@@ -130,6 +129,7 @@ public class DeviceControlActivity extends Activity {
                 updateConnectionState(R.string.connected);
                 invalidateOptionsMenu();
             } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
+                sendHttpSwitchLEDCommend("off", Volley.newRequestQueue(context));
                 mConnected = false;
                 updateConnectionState(R.string.disconnected);
                 invalidateOptionsMenu();
