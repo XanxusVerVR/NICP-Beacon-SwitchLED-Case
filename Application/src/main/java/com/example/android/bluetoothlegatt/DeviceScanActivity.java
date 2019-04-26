@@ -248,10 +248,8 @@ public class DeviceScanActivity extends ListActivity {
                     for (int i = 0; i < mLeDeviceListAdapter.getCount(); i++) {
                         if (mLeDeviceListAdapter.getDevice(i).getAddress().equals(piBleMACAddress)) {
                             sendHttpSwitchLEDCommend("on");
-                            isHaveWeBLEDevice = true;
                         }
                     }
-                    System.out.println(isHaveWeBLEDevice);
                     invalidateOptionsMenu();
                 }
             }, SCAN_PERIOD);
@@ -282,10 +280,6 @@ public class DeviceScanActivity extends ListActivity {
                 mLeDevices.add(device);
             }
         }
-
-//        public ArrayList<BluetoothDevice> getBluetoothDeviceList() {
-//            return mLeDevices;
-//        }
 
         public BluetoothDevice getDevice(int position) {
             return mLeDevices.get(position);
@@ -347,25 +341,9 @@ public class DeviceScanActivity extends ListActivity {
                 public void run() {
                     mLeDeviceListAdapter.addDevice(device);
                     mLeDeviceListAdapter.notifyDataSetChanged();
-                    if (device.getAddress().equals(piBleMACAddress)) {// 如果找到特定的MAC位址，就停止掃描
-
-                        System.out.println("找到了！！！！");
-
-                        mBluetoothAdapter.stopLeScan(mLeScanCallback);
-
-                        if (!isSendHttpCommand) {
-//                            sendHttpSwitchLEDCommend("on");
-                            isSendHttpCommand = true;
-                            System.out.println(isSendHttpCommand);
-                        }
-                    } else {
-//                        sendHttpSwitchLEDCommend("off");
-                    }
                 }
             });
         }
-
-
     };
 
     static class ViewHolder {
