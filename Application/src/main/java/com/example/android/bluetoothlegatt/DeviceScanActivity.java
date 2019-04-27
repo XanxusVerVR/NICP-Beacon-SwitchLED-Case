@@ -77,7 +77,7 @@ public class DeviceScanActivity extends ListActivity {
     private static final int REQUEST_ENABLE_BT = 1;
     private static Context context;
     // Stops scanning after 10 seconds.
-    private static final long SCAN_PERIOD = 3 * 1000;
+    private static final long SCAN_PERIOD = 6 * 1000;
     private static RequestQueue requestQueue;
 
     @Override
@@ -137,47 +137,6 @@ public class DeviceScanActivity extends ListActivity {
             case R.id.menu_stop:
                 scanLeDevice(false);
                 break;
-            case R.id.page2:
-                // 請求程式碼參考：https://bit.ly/2XKTaAQ
-//                String url = "https://xanxus-node-red.cf/android/b";
-//                try {
-//                    RequestQueue requestQueue = Volley.newRequestQueue(this);
-//
-//                    Gson gson = new GsonBuilder().disableHtmlEscaping().setFieldNamingPolicy(FieldNamingPolicy.IDENTITY).create();//創造Gson物件
-//                    final String myJsonString = gson.toJson(new PushService("", "on", new Result(), new Config()));
-//
-//                    StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
-//                        @Override
-//                        public void onResponse(String response) {
-//                            Log.i("LOG_RESPONSE", response.toString());
-//                        }
-//                    }, new Response.ErrorListener() {
-//                        @Override
-//                        public void onErrorResponse(VolleyError error) {
-//                            Log.e("LOG_RESPONSE", error.toString());
-//                        }
-//                    }) {
-//                        @Override
-//                        public String getBodyContentType() {
-//                            return "application/json; charset=utf-8";
-//                        }
-//
-//                        // 雖然有點奇怪，但getBody()確實是送出請求的資料
-//                        @Override
-//                        public byte[] getBody() throws AuthFailureError {
-//                            try {
-//                                return myJsonString == null ? null : myJsonString.getBytes("utf-8");
-//                            } catch (UnsupportedEncodingException uee) {
-//                                VolleyLog.wtf("Unsupported Encoding while trying to get the bytes of %s using %s", myJsonString, "utf-8");
-//                                return null;
-//                            }
-//                        }
-//                    };
-//                    requestQueue.add(stringRequest);
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//                break;
         }
         return true;
     }
@@ -226,6 +185,7 @@ public class DeviceScanActivity extends ListActivity {
         final Intent intent = new Intent(this, DeviceControlActivity.class);
         intent.putExtra(DeviceControlActivity.EXTRAS_DEVICE_NAME, device.getName());
         intent.putExtra(DeviceControlActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
+        // 如果還在掃描中，是true，那就停止掃描
         if (mScanning) {
             mBluetoothAdapter.stopLeScan(mLeScanCallback);
             mScanning = false;
@@ -246,7 +206,27 @@ public class DeviceScanActivity extends ListActivity {
                     boolean isHaveWeBLEDevice = false;
                     for (int i = 0; i < mLeDeviceListAdapter.getCount(); i++) {
                         if (mLeDeviceListAdapter.getDevice(i).getAddress().equals(piBleMACAddress)) {
+                            System.out.println("------------------");
+                            System.out.println("------------------");
+                            System.out.println("------------------");
+                            System.out.println("------------------");
+                            System.out.println("------------------");
+                            System.out.println(mLeDeviceListAdapter.getDevice(i).getAddress());
+                            System.out.println("------------------");
+                            System.out.println("------------------");
+                            System.out.println("------------------");
+                            System.out.println("------------------");
+                            System.out.println("------------------");
                             sendHttpSwitchLEDCommend("on", Volley.newRequestQueue(context));
+
+                            // 跳轉頁面，與固定的BLE裝置連線
+                            final BluetoothDevice device = mLeDeviceListAdapter.getDevice(i);
+                            final Intent intent = new Intent(context, DeviceControlActivity.class);
+                            intent.putExtra(DeviceControlActivity.EXTRAS_DEVICE_NAME, device.getName());
+                            intent.putExtra(DeviceControlActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
+                            startActivity(intent);
+
+                            break;
                         }
                     }
                     invalidateOptionsMenu();
